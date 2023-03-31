@@ -105,7 +105,9 @@ public class ClientGUI {
         JLabel portLabel = new JLabel("Port:");
 
         ipField.setPreferredSize(new Dimension(200, 40));
+        ipField.setText("localhost");
         portField.setPreferredSize(new Dimension(200, 40));
+        portField.setText("6342");
         connectBtn.setPreferredSize(new Dimension(75, 40));
 
         JPanel ipPanel = new JPanel();
@@ -154,14 +156,14 @@ public class ClientGUI {
     }
 
     public void showDialog(String message) {
-        JOptionPane.showMessageDialog(mainWin, message, "Message", JOptionPane.INFORMATION_MESSAGE);
+        JOptionPane.showConfirmDialog(mainWin, message, "Information", JOptionPane.OK_OPTION);
     }
 
     public void showError(String message) {
-        JOptionPane.showMessageDialog(mainWin, message, "Error", JOptionPane.ERROR_MESSAGE);
+        JOptionPane.showConfirmDialog(mainWin, message, "Error", JOptionPane.ERROR_MESSAGE);
     }
 
     public void connError(String message) {
-        JOptionPane.showMessageDialog(connectWin, message, "Connection Error", JOptionPane.ERROR_MESSAGE);
+        JOptionPane.showConfirmDialog(connectWin, message, "Connection Error", JOptionPane.ERROR_MESSAGE);
     }
 }

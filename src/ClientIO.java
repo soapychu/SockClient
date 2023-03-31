@@ -19,6 +19,10 @@ public class ClientIO {
             while (true) {
                 try {
                     String message = sin.readLine();
+                    if (message == null) {
+                        Main.gui.showError("Server terminated connection without warning!");
+                        break;
+                    }
                     writeMsg(message);
                 } catch (Exception e) {
                     if (!closing)
