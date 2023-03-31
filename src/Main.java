@@ -12,10 +12,6 @@ public class Main {
         gui = new ClientGUI("Chat Client");
     }
 
-    public static void openConnection(String ip, int port) {
-        io = new ClientIO(ip, port);
-    }
-
     public static void closeConnection() {
         io.closing = true;
         try {
@@ -26,7 +22,7 @@ public class Main {
         }
         io.clearChat();
         gui.inpField.setEditable(false);
-        io.writeMsg("# Please connect to a server...");
+        io.processMsg("# Please connect to a server...");
         io = null;
     }
 }

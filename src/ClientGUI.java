@@ -3,149 +3,128 @@ import java.awt.*;
 
 public class ClientGUI {
 
-    JFrame mainWin = new JFrame();
-    JMenuBar mainMenuBar = new JMenuBar();
-    JMenu mainMenu = new JMenu("IO");
-    JMenuItem connectItem = new JMenuItem("Connect...");
-    JMenuItem disconnectItem = new JMenuItem("Disconnect");
+    //-- Constructing the Main Window --//
+    JTextArea chatArea = new JTextArea("# Please connect to a server...") {
+        {
+            setEditable(false);
+            setLineWrap(true);
+            setWrapStyleWord(true);
+        }
+    };
 
-    JPanel mainPanel = new JPanel();
-    JTextArea inpPanel = new JTextArea();
+    JPanel mainPanel = new JPanel() {
+        {
+            setLayout(new BorderLayout());
+            add(new JScrollPane(chatArea, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED, JScrollPane.HORIZONTAL_SCROLLBAR_NEVER), BorderLayout.CENTER);
+        }
+    };
 
-    JTextArea chatArea = new JTextArea("# Please connect to a server...");
-    JTextField inpField = new JTextField();
-    JButton sendBtn = new JButton("Send");
+    JTextField inpField = new JTextField() {
+        {
+            setEditable(false);
+            addActionListener(e -> {
+                if (Main.io != null)
+                    Main.io.send(getText());
+                setText("");
+            });
+        }
+    };
+
+    JButton sendBtn = new JButton("Send") {
+        {
+            setPreferredSize(new Dimension(75, 40));
+            setBackground(new Color(0x238636));
+            setCursor(new Cursor(Cursor.HAND_CURSOR));
+            addActionListener(e -> {
+                if (!inpField.isEditable() || inpField.getText().isEmpty())
+                    return;
+                if (Main.io != null)
+                    Main.io.send(inpField.getText());
+                inpField.setText("");
+            });
+        }
+    };
+
+    JPanel inpPanel = new JPanel() {
+        {
+            setLayout(new BorderLayout());
+            setPreferredSize(new Dimension(600, 40));
+            setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
+            setCursor(new Cursor(Cursor.DEFAULT_CURSOR));
+            add(inpField, BorderLayout.CENTER);
+            add(sendBtn, BorderLayout.EAST);
+        }
+    };
+
+    JFrame mainWin = new JFrame() {
+        {
+            setMinimumSize(new Dimension(600, 400));
+            setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+            setJMenuBar(new JMenuBar() {
+                {
+                    add(new JMenu("Server") {
+                        {
+                            add(new JMenuItem("Connect") {
+                                {
+                                    addActionListener(e -> {
+                                        openConnect();
+                                    });
+                                }
+                            });
+                            add(new JMenuItem("Disconnect") {
+                                {
+                                    addActionListener(e -> {
+                                        if (Main.io != null)
+                                            Main.closeConnection();
+                                    });
+                                }
+                            });
+                        }
+                    });
+                }
+            });
+            add(mainPanel, BorderLayout.CENTER);
+            add(inpPanel, BorderLayout.SOUTH);
+        }
+    };
 
 
-    JFrame connectWin = new JFrame();
-    JPanel connectPanel = new JPanel();
-    JTextField ipField = new JTextField();
-    JTextField portField = new JTextField();
-    JButton connectBtn = new JButton("Connect");
+    //-- Constructing the Connect Window --//
+    JTextField ipField = new JTextField() { { setText("localhost"); }};
+    JTextField portField = new JTextField() { { setText("6342"); }};
+    JButton connectBtn = new JButton("Connect") {
+        {
+            addActionListener(e -> {
+                if (Main.io != null)
+                    Main.closeConnection();
+                Main.io = new ClientIO(ipField.getText(), Integer.parseInt(portField.getText()));
+                connectWin.dispose();
+            });
+        }
+    };
+    JPanel connectPanel = new JPanel() {
+        {
+            setLayout(new GridLayout(3, 1));
+            add(new JPanel() {{ add(new JLabel("IP:"), BorderLayout.EAST); add(ipField, BorderLayout.WEST); }});
+            add(new JPanel() {{ add(new JLabel("Port:"), BorderLayout.EAST); add(portField, BorderLayout.WEST); }});
+            add(new JPanel() {{ add(connectBtn); }});
+        }
+    };
 
+    JFrame connectWin = new JFrame("Connect") {
+        {
+            setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+            setMinimumSize(new Dimension(200, 100));
+            setResizable(false);
+            setLocationRelativeTo(null);
+            add(connectPanel);
+        }
+    };
 
+    //-- Constructor and Methods --//
     public ClientGUI(String title) {
         mainWin.setTitle(title);
-        winit();
-    }
-
-    public void winit() {
-        mainWin.setSize(600, 400);
-        mainWin.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        mainWin.setResizable(false);
-        mainWin.setLocationRelativeTo(null);
         mainWin.setVisible(true);
-        mainMenu.add(connectItem);
-        mainMenu.add(disconnectItem);
-        mainMenuBar.add(mainMenu);
-        mainWin.setJMenuBar(mainMenuBar);
-
-        mainPanel.setLayout(new BorderLayout());
-        mainPanel.add(chatArea);
-        mainWin.add(mainPanel, BorderLayout.CENTER);
-
-        chatArea.setEditable(false);
-
-        inpPanel.setLayout(new BorderLayout());
-        inpPanel.setPreferredSize(new Dimension(600, 40));
-        inpPanel.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
-        inpPanel.setCursor(new Cursor(Cursor.DEFAULT_CURSOR));
-
-        inpField.setPreferredSize(new Dimension(500, 40));
-        inpField.setEditable(false);
-
-        sendBtn.setPreferredSize(new Dimension(75, 40));
-        sendBtn.setBackground(new Color(0x238636));
-        sendBtn.setCursor(new Cursor(Cursor.HAND_CURSOR));
-
-        inpPanel.add(inpField, BorderLayout.WEST);
-        inpPanel.add(sendBtn, BorderLayout.EAST);
-        mainWin.add(inpPanel, BorderLayout.SOUTH);
-
-        inpField.addActionListener(e -> {
-            String message = inpField.getText();
-            if (message != null) {
-                Main.io.send(message);
-                inpField.setText("");
-            }
-        });
-
-        sendBtn.addActionListener(e -> {
-            if (!inpField.isEditable() || inpField.getText().isEmpty())
-                return;
-            System.out.println(inpField.getText());
-            String message = inpField.getText();
-            if (message != null) {
-                Main.io.send(message);
-                inpField.setText("");
-            }
-        });
-
-        connectItem.addActionListener(e -> {
-            openConnect();
-        });
-
-        disconnectItem.addActionListener(e -> {
-            if (Main.io != null)
-                Main.closeConnection();
-        });
-
-        // Connect Menu
-
-        connectWin.setTitle("Connect");
-        connectWin.setSize(300, 160);
-        connectWin.setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
-        connectWin.setResizable(false);
-        connectWin.setLocationRelativeTo(mainWin);
-
-        connectPanel.setLayout(new BorderLayout());
-        connectPanel.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
-
-        JLabel ipLabel = new JLabel("IP:");
-        JLabel portLabel = new JLabel("Port:");
-
-        ipField.setPreferredSize(new Dimension(200, 40));
-        ipField.setText("localhost");
-        portField.setPreferredSize(new Dimension(200, 40));
-        portField.setText("6342");
-        connectBtn.setPreferredSize(new Dimension(75, 40));
-
-        JPanel ipPanel = new JPanel();
-        ipPanel.setLayout(new BorderLayout());
-        ipPanel.add(ipLabel, BorderLayout.WEST);
-        ipPanel.add(ipField, BorderLayout.EAST);
-
-        JPanel portPanel = new JPanel();
-        portPanel.setLayout(new BorderLayout());
-        portPanel.add(portLabel, BorderLayout.WEST);
-        portPanel.add(portField, BorderLayout.EAST);
-
-        JPanel btnPanel = new JPanel();
-        btnPanel.setLayout(new BorderLayout());
-        connectBtn.setBackground(new Color(0x238636));
-        btnPanel.add(connectBtn, BorderLayout.CENTER);
-
-        connectPanel.add(ipPanel, BorderLayout.NORTH);
-        connectPanel.add(portPanel, BorderLayout.CENTER);
-        connectPanel.add(btnPanel, BorderLayout.SOUTH);
-
-        connectWin.add(connectPanel);
-
-        connectBtn.addActionListener(e -> {
-            if (ipField.getText().isEmpty() || portField.getText().isEmpty())
-                return;
-
-            String ip = ipField.getText();
-            int port;
-            try {
-                port = Integer.parseInt(portField.getText());
-            } catch (NumberFormatException ex) {
-                connError("Port must be a number!");
-                return;
-            }
-            Main.openConnection(ip, port);
-            connectWin.setVisible(false);
-        });
     }
 
     public void openConnect() {
@@ -156,14 +135,14 @@ public class ClientGUI {
     }
 
     public void showDialog(String message) {
-        JOptionPane.showConfirmDialog(mainWin, message, "Information", JOptionPane.OK_OPTION);
+        JOptionPane.showMessageDialog(mainWin, message, "Information", JOptionPane.INFORMATION_MESSAGE);
     }
 
     public void showError(String message) {
-        JOptionPane.showConfirmDialog(mainWin, message, "Error", JOptionPane.ERROR_MESSAGE);
+        JOptionPane.showMessageDialog(mainWin, message, "Error", JOptionPane.ERROR_MESSAGE);
     }
 
     public void connError(String message) {
-        JOptionPane.showConfirmDialog(connectWin, message, "Connection Error", JOptionPane.ERROR_MESSAGE);
+        JOptionPane.showMessageDialog(connectWin, message, "Connection Error", JOptionPane.ERROR_MESSAGE);
     }
 }

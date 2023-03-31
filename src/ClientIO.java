@@ -1,7 +1,4 @@
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.PrintWriter;
+import java.io.*;
 import java.net.Socket;
 
 public class ClientIO {
@@ -23,7 +20,7 @@ public class ClientIO {
                         Main.gui.showError("Server terminated connection without warning!");
                         break;
                     }
-                    writeMsg(message);
+                    processMsg(message);
                 } catch (Exception e) {
                     if (!closing)
                         Main.gui.showError("Could not read from server.");
@@ -42,13 +39,13 @@ public class ClientIO {
             sin = new BufferedReader(new InputStreamReader(sock.getInputStream()));
             sout = new PrintWriter(sock.getOutputStream(), true);
         } catch (IOException e) {
-            Main.gui.showError("Could not connect to server.");
+            Main.gui.connError("Could not connect to server.");
             return;
         }
 
         clearChat();
         Main.gui.inpField.setEditable(true);
-        writeMsg("# Connected to " + ip + ":" + port + "");
+        processMsg("# Connected to " + ip + ":" + port + "");
     }
 
     public void send(String message) {
@@ -59,7 +56,12 @@ public class ClientIO {
         Main.gui.chatArea.setText("");
     }
 
-    public void writeMsg(String message) {
-        Main.gui.chatArea.append(message + "\n");
+    public void processMsg(String message) {
+        if (message.startsWith("i")) {
+            Main.gui.showDialog(message.substring(2));
+        } else if (message.startsWith("!")) {
+            Main.gui.showError(message.substring(2));
+        } else
+            Main.gui.chatArea.append(message + "\n");
     }
 }
